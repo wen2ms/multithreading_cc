@@ -29,5 +29,11 @@ int main() {
     thread3.join();
     thread5.join();
 
+    std::thread thread6(foo);
+
+    thread6.detach();
+
+    std::cout << "Thread6 id: " << thread6.get_id() << std::endl;
+
     return 0;
 }
