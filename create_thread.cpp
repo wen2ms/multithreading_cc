@@ -35,5 +35,7 @@ int main() {
 
     std::cout << "Thread6 id: " << thread6.get_id() << std::endl;
 
+    std::cout << "The number of CPU cores: " << std::thread::hardware_concurrency() << std::endl;
+
     return 0;
 }
