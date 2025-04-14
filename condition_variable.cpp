@@ -8,11 +8,12 @@ class TaskQueue {
   public:
     void put(int task) {
         std::unique_lock<std::mutex> locker(mutex_);
-        while (max_size_ == task_queue_.size()) {
-            // When the thread is blocked, if the thread has locked the mutex, the lock will be unlocked.
-            // When the thread is unblocked, the thread lock the mutex again
-            not_full_.wait(locker);
-        }
+        // When the thread is blocked, if the thread has locked the mutex, the lock will be unlocked.
+        // When the thread is unblocked, the thread lock the mutex again
+        not_full_.wait(locker, [=]() {
+            // Returning true means unblocked
+            return max_size_ != task_queue_.size();
+        });
         task_queue_.push(task);
         std::cout << "Add task: " << task << ", thread ID: " << std::this_thread::get_id() << std::endl;
 
@@ -21,9 +22,9 @@ class TaskQueue {
 
     void take() {
         std::unique_lock<std::mutex> locker(mutex_);
-        while (task_queue_.empty()) {
-            not_empty_.wait(locker);
-        }
+        not_empty_.wait(locker, [=]() {
+            return !task_queue_.empty();
+        });
         int node = task_queue_.front();
         task_queue_.pop();
         std::cout << "Delete task: " << node << ", thread ID: " << std::this_thread::get_id() << std::endl;
