@@ -23,7 +23,8 @@ class Operation {
             // mutex_.unlock();
 
             {
-                std::lock_guard<std::mutex> guard(mutex_);
+                std::lock_guard<std::recursive_mutex> guard(mutex_);
+                increment(2);
                 --number_;
                 std::cout << "--current number: " << number_ << std::endl;
             }
@@ -34,7 +35,7 @@ class Operation {
 
   private:
     int number_ = 999;
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
 };
 
 int main() {
