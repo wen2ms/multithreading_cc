@@ -7,10 +7,10 @@
 class TaskQueue {
   public:
     void put(int task) {
-        std::unique_lock<std::mutex> locker(mutex_);
+        std::lock_guard<std::mutex> locker(mutex_);
         // When the thread is blocked, if the thread has locked the mutex, the lock will be unlocked.
         // When the thread is unblocked, the thread lock the mutex again
-        not_full_.wait(locker, [=]() {
+        not_full_.wait(mutex_, [=]() {
             // Returning true means unblocked
             return max_size_ != task_queue_.size();
         });
@@ -21,12 +21,13 @@ class TaskQueue {
     }
 
     void take() {
-        std::unique_lock<std::mutex> locker(mutex_);
-        not_empty_.wait(locker, [=]() {
+        mutex_.lock();
+        not_empty_.wait(mutex_, [=]() {
             return !task_queue_.empty();
         });
         int node = task_queue_.front();
         task_queue_.pop();
+        mutex_.unlock();
         std::cout << "Delete task: " << node << ", thread ID: " << std::this_thread::get_id() << std::endl;
 
         not_full_.notify_all();
@@ -51,8 +52,8 @@ class TaskQueue {
     int max_size_;
     std::queue<int> task_queue_;
     std::mutex mutex_;
-    std::condition_variable not_full_;
-    std::condition_variable not_empty_;
+    std::condition_variable_any not_full_;
+    std::condition_variable_any not_empty_;
 };
 
 int main() {
