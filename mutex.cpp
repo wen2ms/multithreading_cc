@@ -17,10 +17,16 @@ class Operation {
 
     void decrement(int count) {
         for (int i = 0; i < count; ++i) {
-            mutex_.lock();
-            --number_;
-            std::cout << "--current number: " << number_ << std::endl;
-            mutex_.unlock();
+            // mutex_.lock();
+            // --number_;
+            // std::cout << "--current number: " << number_ << std::endl;
+            // mutex_.unlock();
+
+            {
+                std::lock_guard<std::mutex> guard(mutex_);
+                --number_;
+                std::cout << "--current number: " << number_ << std::endl;
+            }
 
             std::this_thread::yield();
         }
